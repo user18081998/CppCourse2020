@@ -278,7 +278,7 @@ class Bibliotheque{
 
     void AjouterOuvrage(Ouvrage* val);
     bool Reserver(const Emprunteur& emprunteur,const Gestionnaire& gestionnaire, Ouvrage* ouvrage);
-    void Afficher() const;
+    void Afficher();
 };
 Bibliotheque::Bibliotheque(){}
 Bibliotheque::Bibliotheque(const vector<Emprunt>& emp){
@@ -293,15 +293,15 @@ void Bibliotheque::AjouterOuvrage(Ouvrage* val){ouvrages.push_back(val);}
 
 bool Bibliotheque::Reserver(const Emprunteur& emprunteur,const Gestionnaire& gestionnaire,Ouvrage* ouvrage){
     bool verifEmprunt=false;
-    for(Emprunt& emp : emprunts) 
-        if(emp.getEmprunteur().getLogin()==emprunteur.getLogin() && emp.getEmprunteur().getMotDePasse()==emprunteur.getMotDePasse())
-            if(emp.getGestionnaire().getLogin()==gestionnaire.getLogin() && emp.getGestionnaire().getMotDePasse()==gestionnaire.getMotDePasse())
+    for(vector<Emprunt>::iterator emp=emprunts.begin();emp!=emprunts.end();++emp)
+        if(emp->getEmprunteur().getLogin()==emprunteur.getLogin() && emp->getEmprunteur().getMotDePasse()==emprunteur.getMotDePasse())
+            if(emp->getGestionnaire().getLogin()==gestionnaire.getLogin() && emp->getGestionnaire().getMotDePasse()==gestionnaire.getMotDePasse())
                 verifEmprunt=true;
     if(! (verifEmprunt)) return false;
 
-    for(Ouvrage* ouv : ouvrages)
-        if(ouv->getISBN()==ouvrage->getISBN()) 
-            for(Exemplaire& exem : ouv->getExemplaires()) 
+    for(vector<Ouvrage*>::iterator ouv=ouvrages.begin();ouv!=ouvrages.end();++ouv)
+        if((*ouv)->getISBN()==ouvrage->getISBN()) 
+            for(Exemplaire& exem : (*ouv)->getExemplaires()) 
                 if(exem.getReservation==false){
                     exem.setReservation(true);
                     emprunts.push_back(Emprunt(emprunteur,exem,gestionnaire));
@@ -310,12 +310,14 @@ bool Bibliotheque::Reserver(const Emprunteur& emprunteur,const Gestionnaire& ges
 
     return true;
 }
-void Bibliotheque::Afficher() const{
+void Bibliotheque::Afficher(){
     for(Emprunt emprunt:emprunts){ 
         cout    <<"----- EMPRUNT -----"<<endl
                 <<"id de l'exemplaire : "<<emprunt.getExemplaire().getIdentifiant()<<endl;
-        for(Ouvrage* ouvrage : ouvrages) for(Exemplaire exemp : ouvrage->getExemplaires()) if(exemp.getIdentifiant()==emprunt.getExemplaire().getIdentifiant())
-            cout<<ouvrage->auteurOuImpact()<<endl;
+        for(vector<Ouvrage*>::iterator ouv=ouvrages.begin();ouv!=ouvrages.end();++ouv) 
+            for(vector<Exemplaire>::iterator exemp=(*ouv)->getExemplaires().begin();exemp!=(*ouv)->getExemplaires().end();++exemp) 
+                if(exemp->getIdentifiant()==emprunt.getExemplaire().getIdentifiant())
+                    cout<<(*ouv)->auteurOuImpact()<<endl;
         cout<<"Nom emprunteur : "<<emprunt.getEmprunteur().getNom()<<endl;
         cout<<"Prenom emprunteur : "<<emprunt.getEmprunteur().getPrenom()<<endl;
         cout<<"Nom gestionnaire : "<<emprunt.getGestionnaire().getNom()<<endl;
