@@ -280,15 +280,15 @@ void Bibliotheque::AjouterOuvrage(const Ouvrage& val){ouvrages.push_back(val);}
 
 bool Bibliotheque::Reserver(const Emprunteur& emprunteur,const Gestionnaire& gestionnaire, const Ouvrage& ouvrage){
     bool verifEmprunt=false;
-    for(auto& emp : emprunts) 
+    for(Emprunt& emp : emprunts) 
         if(emp.getEmprunteur().getLogin()==emprunteur.getLogin() && emp.getEmprunteur().getMotDePasse()==emprunteur.getMotDePasse())
             if(emp.getGestionnaire().getLogin()==gestionnaire.getLogin() && emp.getGestionnaire().getMotDePasse()==gestionnaire.getMotDePasse())
                 verifEmprunt=true;
     if(! (verifEmprunt)) return false;
 
-    for(auto& ouv : ouvrages)
+    for(Ouvrage& ouv : ouvrages)
         if(ouv.getISBN()==ouvrage.getISBN()) 
-            for(auto& exem : ouv.getExemplaires()) 
+            for(Exemplaire& exem : ouv.getExemplaires()) 
                 if(exem.getReservation==false){
                     exem.setReservation(true);
                     emprunts.push_back(Emprunt(emprunteur,exem,gestionnaire));
@@ -298,10 +298,10 @@ bool Bibliotheque::Reserver(const Emprunteur& emprunteur,const Gestionnaire& ges
     return true;
 }
 void Bibliotheque::Afficher() const{
-    for(auto& emprunt:emprunts){ 
+    for(Emprunt emprunt:emprunts){ 
         cout    <<"----- EMPRUNT -----"<<endl
                 <<"id de l'exemplaire : "<<emprunt.getExemplaire().getIdentifiant()<<endl;
-        for(auto& ouvrage : ouvrages) for(auto& exemp : ouvrage.getExemplaires()) if(exemp.getIdentifiant()==emprunt.getExemplaire().getIdentifiant())
+        for(const Ouvrage& ouvrage : ouvrages) for(Exemplaire exemp : ouvrage.getExemplaires()) if(exemp.getIdentifiant()==emprunt.getExemplaire().getIdentifiant())
             cout<<ouvrage.auteurOuImpact()<<endl;
         cout<<"Nom emprunteur : "<<emprunt.getEmprunteur().getNom()<<endl;
         cout<<"Prenom emprunteur : "<<emprunt.getEmprunteur().getPrenom()<<endl;
