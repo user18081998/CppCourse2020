@@ -41,10 +41,10 @@ class Ouvrage{
     Ouvrage(const string& isbn, const string& t,const vector<Exemplaire>& exemp);
     Ouvrage(const string& isbn, const string& t);
     ~Ouvrage();
-    string getISBN() const;
-    vector<Exemplaire> getExemplaires() const;
+    virtual string getISBN() const=0;
+    virtual vector<Exemplaire> getExemplaires() const =0;
 
-    void AjouterExemplaire(const Exemplaire& exem);
+    virtual void AjouterExemplaire(const Exemplaire& exem)=0;
     virtual string auteurOuImpact()const =0;
 };
 Ouvrage::Ouvrage(){}
@@ -55,11 +55,7 @@ Ouvrage::Ouvrage(const string& isbn, const string& t){
     ISBN=isbn; titre=t;
 }
 Ouvrage::~Ouvrage(){}
-string Ouvrage::getISBN() const{return ISBN;}
-vector<Exemplaire> Ouvrage::getExemplaires() const{return exemplaires;}
-void Ouvrage::AjouterExemplaire(const Exemplaire& exem){
-    exemplaires.push_back(exem);
-}
+
 
 // ################################################## Revue ##################################################
 class Revue : protected Ouvrage {
@@ -71,6 +67,10 @@ class Revue : protected Ouvrage {
     Revue(const string& isbn, const string& t,const vector<Exemplaire>& exemp,const string& edit, const string is);
     Revue(const string& isbn, const string& t,const string& edit, const string is);
     ~Revue();
+    string getISBN() const;
+    vector<Exemplaire> getExemplaires() const;
+    void AjouterExemplaire(const Exemplaire& exem);
+    
     string getEditeur() const;
     void setEditeur(const string& val);
     string getImpactScientifique() const;
@@ -89,6 +89,11 @@ Revue::~Revue(){}
 string Revue::getEditeur() const{
     return editeur;
 }
+string Revue::getISBN() const{return ISBN;}
+vector<Exemplaire> Revue::getExemplaires() const{return exemplaires;}
+void Revue::AjouterExemplaire(const Exemplaire& exem){
+    exemplaires.push_back(exem);
+}
 void Revue::setEditeur(const string& val){editeur=val;}
 string Revue::getImpactScientifique() const{return impactScientifique;}
 void Revue::setImpactScientifique(const string val){impactScientifique=val;}
@@ -103,6 +108,11 @@ class Livre : protected Ouvrage {
     Livre(const string& isbn, const string& t,const vector<Exemplaire>& exemp,const string& aut, const string& res);
     Livre(const string& isbn, const string& t,const string& aut, const string& res);
     ~Livre();
+
+    string getISBN() const;
+    vector<Exemplaire> getExemplaires() const;
+    void AjouterExemplaire(const Exemplaire& exem);
+
     string getAuteur() const;
     void setAuteur(const string& val);
     string getResume() const;
@@ -118,6 +128,11 @@ Livre::Livre(const string& isbn, const string& t,const string& aut, const string
     ISBN=isbn; titre=t; auteur=aut; resume=res;
 }
 Livre::~Livre(){}
+string Livre::getISBN() const{return ISBN;}
+vector<Exemplaire> Livre::getExemplaires() const{return exemplaires;}
+void Livre::AjouterExemplaire(const Exemplaire& exem){
+    exemplaires.push_back(exem);
+}
 string Livre::getAuteur() const{return auteur;}
 void Livre::setAuteur(const string& val){auteur=val;}
 string Livre::getResume() const{return resume;}
@@ -251,19 +266,18 @@ ostream& operator<<(ostream& out,const Emprunt& emprunt){
 
 // ################################################## BIBLIOTHEQUE ##################################################
 class Bibliotheque{
-    vector<Ouvrage> ouvrages;
+    vector<Ouvrage*> ouvrages;
     vector<Emprunt> emprunts; 
     public :
     Bibliotheque();
     Bibliotheque(const vector<Emprunt>& emp);
     ~Bibliotheque();
-    vector<Ouvrage> getOuvrages() const;
-    void setOuvrages(const vector<Ouvrage>& val);
+    vector<Ouvrage*> getOuvrages() const;
     vector<Emprunt> getEmprunts() const;
     void setEmprunts(const vector<Emprunt>& val);
 
-    void AjouterOuvrage(const Ouvrage& val);
-    bool Reserver(const Emprunteur& emprunteur,const Gestionnaire& gestionnaire, const Ouvrage& ouvrage);
+    void AjouterOuvrage(Ouvrage* val);
+    bool Reserver(const Emprunteur& emprunteur,const Gestionnaire& gestionnaire, Ouvrage* ouvrage);
     void Afficher() const;
 };
 Bibliotheque::Bibliotheque(){}
@@ -271,14 +285,13 @@ Bibliotheque::Bibliotheque(const vector<Emprunt>& emp){
     emprunts=emp;
 }
 Bibliotheque::~Bibliotheque(){}
-vector<Ouvrage> Bibliotheque::getOuvrages() const{return ouvrages;}
-void Bibliotheque::setOuvrages(const vector<Ouvrage>& val){ouvrages=val;}
+vector<Ouvrage*> Bibliotheque::getOuvrages() const{return ouvrages;}
 vector<Emprunt> Bibliotheque::getEmprunts() const{return emprunts;}
 void Bibliotheque::setEmprunts(const vector<Emprunt>& val){emprunts=val;}
 
-void Bibliotheque::AjouterOuvrage(const Ouvrage& val){ouvrages.push_back(val);}
+void Bibliotheque::AjouterOuvrage(Ouvrage* val){ouvrages.push_back(val);}
 
-bool Bibliotheque::Reserver(const Emprunteur& emprunteur,const Gestionnaire& gestionnaire, const Ouvrage& ouvrage){
+bool Bibliotheque::Reserver(const Emprunteur& emprunteur,const Gestionnaire& gestionnaire,Ouvrage* ouvrage){
     bool verifEmprunt=false;
     for(Emprunt& emp : emprunts) 
         if(emp.getEmprunteur().getLogin()==emprunteur.getLogin() && emp.getEmprunteur().getMotDePasse()==emprunteur.getMotDePasse())
@@ -286,9 +299,9 @@ bool Bibliotheque::Reserver(const Emprunteur& emprunteur,const Gestionnaire& ges
                 verifEmprunt=true;
     if(! (verifEmprunt)) return false;
 
-    for(Ouvrage& ouv : ouvrages)
-        if(ouv.getISBN()==ouvrage.getISBN()) 
-            for(Exemplaire& exem : ouv.getExemplaires()) 
+    for(Ouvrage* ouv : ouvrages)
+        if(ouv->getISBN()==ouvrage->getISBN()) 
+            for(Exemplaire& exem : ouv->getExemplaires()) 
                 if(exem.getReservation==false){
                     exem.setReservation(true);
                     emprunts.push_back(Emprunt(emprunteur,exem,gestionnaire));
@@ -301,8 +314,8 @@ void Bibliotheque::Afficher() const{
     for(Emprunt emprunt:emprunts){ 
         cout    <<"----- EMPRUNT -----"<<endl
                 <<"id de l'exemplaire : "<<emprunt.getExemplaire().getIdentifiant()<<endl;
-        for(const Ouvrage& ouvrage : ouvrages) for(Exemplaire exemp : ouvrage.getExemplaires()) if(exemp.getIdentifiant()==emprunt.getExemplaire().getIdentifiant())
-            cout<<ouvrage.auteurOuImpact()<<endl;
+        for(Ouvrage* ouvrage : ouvrages) for(Exemplaire exemp : ouvrage->getExemplaires()) if(exemp.getIdentifiant()==emprunt.getExemplaire().getIdentifiant())
+            cout<<ouvrage->auteurOuImpact()<<endl;
         cout<<"Nom emprunteur : "<<emprunt.getEmprunteur().getNom()<<endl;
         cout<<"Prenom emprunteur : "<<emprunt.getEmprunteur().getPrenom()<<endl;
         cout<<"Nom gestionnaire : "<<emprunt.getGestionnaire().getNom()<<endl;
